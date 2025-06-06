@@ -180,7 +180,7 @@ func (s *Storage) CheckUserByPassword(ctx context.Context, userId, password stri
 
 	sql, args, err := squirrel.Select("password").
 		From("users").
-		Where(squirrel.Eq{"id": userId, "password": password}).
+		Where(squirrel.Eq{"id": userId}).
 		PlaceholderFormat(squirrel.Dollar).
 		ToSql()
 	if err != nil {
@@ -243,39 +243,6 @@ func (s *Storage) GetUser(ctx context.Context, userId uuid.UUID) (*dto.User, err
 	}
 
 	return &user, nil
-}
-
-func (s *Storage) GetAllFriends(ctx context.Context, userId uuid.UUID) ([]*dto.Purchase, error) {
-	const op = "storage.Postgres.GetAllPurchases"
-
-	sql, args, err := squirrel.Select("id", "price", "currency", "created_at", "order_type", "channel", "status",
-		"service", "tariff").
-		From("purchases").
-		Where(squirrel.Eq{"user_id": userId}).
-		PlaceholderFormat(squirrel.Dollar).
-		ToSql()
-	if err != nil {
-		return nil, fmt.Errorf("%s: %w", op, err)
-	}
-
-	rows, err := s.db.Query(ctx, sql, args...)
-	if err != nil {
-		return nil, fmt.Errorf("%s: %w", op, err)
-	}
-	defer rows.Close()
-
-	purchases := make([]*dto.Purchase, 0)
-	for rows.Next() {
-		var purchase dto.Purchase
-		err = rows.Scan(&purchase.Id, &purchase.Price, &purchase.Currency, &purchase.CreatedAt, &purchase.OrderType,
-			&purchase.Channel, &purchase.Status, &purchase.Service, &purchase.Tariff)
-		if err != nil {
-			return nil, fmt.Errorf("%s: %w", op, err)
-		}
-		purchases = append(purchases, &purchase)
-	}
-
-	return purchases, nil
 }
 
 func (s *Storage) Close() error {
