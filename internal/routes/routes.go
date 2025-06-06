@@ -42,7 +42,6 @@ func InitRoutes(authHandler *handlers.AuthHandler, userHandler *handlers.UserHan
 		api.Use(authMiddleware.Handle())
 		{
 			api.GET("/me", userHandler.GetUser)
-			api.GET("/friends", userHandler.GetAllFriends)
 		}
 	}
 
